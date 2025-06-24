@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle Financeiro Pessoal</title>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body, header, main {
+      background-repeat: no-repeat;
+    }
+
+    body {
+      background-color: linen;
+      width: 100%;
+      height: 100%;
+    }
+
+    header {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 25px 35px;
+      background-color: #fdfdfd;
+      border-bottom: 2px solid #09897a;
+      box-shadow: 0 3px 5px rgba(0, 0, 0, 0.08);
+    }
+
+    #cabecalho {
+      text-align: center;
+      color: darkblue;
+    }
+
+    h2 {
+      color: darkblue;
+    }
+
+    main {
+      padding: 25px;
+      border-radius: 50px;
+      justify-content: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      gap: 20px;
+      background-size: contain;
+      background-position: center center;
+    }
+
+    .area {
+      text-align: center;
+    }
+
+    #formulario {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 320px;
+      color: #111;
+    }
+
+    #tipoReceita,
+    #dataInput,
+    #valorInput,
+    #nomeInput {
+      width: 100%;
+      height: 2.5rem;
+      padding: 8px;
+      border: 1px solid #bbb;
+      border-radius: 10px;
+    }
+
+    #botaoAdicionar {
+      width: 85%;
+      height: 2.5rem;
+      background-color: #00bfa6;
+      border: none;
+      cursor: pointer;
+      border-radius: 12px;
+    }
+
+    #botaoAdicionar .fa-plus {
+      background-color: #7fffd4;
+      font-size: 1.2rem;
+      padding: 5px;
+      border-radius: 8px;
+    }
+
+    #botaoExcluir {
+      width: 92%;
+      height: 2.5rem;
+      background-color: #ff4d4d;
+      border: none;
+      cursor: pointer;
+      border-radius: 12px;
+    }
+
+    #botaoExcluir .fa-trash {
+      font-size: 1.2rem;
+      color: white;
+    }
+
+    #visual {
+      margin-top: 18px;
+      padding: 12px;
+      background-color: #f5f5f5;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-evenly;
+    }
+
+    footer section {
+      flex: 1;
+      max-width: 280px;
+      height: 12vh;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="cabecalho">Controle</h1>
+    <div>
+      <img src="Logo.png" alt="Logo" width="80" height="75">
+    </div>
+  </header>
+
+  <main class="area">
+    <div id="formulario">
+      <h2>Digite seu salário</h2>
+      <input type="text" id="tipoReceita" placeholder="Ex: R$ 1.800,00">
+      <input type="text" id="nomeInput" placeholder="Nome do produto ou serviço">
+      <input type="date" id="dataInput">
+      <input type="text" id="valorInput" placeholder="Valor da despesa: R$ 90,00">
+     
+      <button type="button" id="botaoAdicionar" onclick="confirma()">
+        <i class="fas fa-plus"></i>
+      </button>
+
+      <button type="button" id="botaoExcluir" onclick="excluir()">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+
+    <ul id="visual"></ul>
+  </main>
+
+  <footer>
+    <section>
+      <h3>Previsto</h3>
+      <input type="text" id="previsto" readonly>
+    </section>
+    <section>
+      <h3>Efetivado</h3>
+      <input type="text" id="efetivado" readonly>
+    </section>
+    <section>
+      <h3>Saldo</h3>
+      <input type="text" id="saldo" readonly>
+    </section>
+  </footer>
+
+  <script>
+    function confirma() {
+      const Receita = parseFloat(document.getElementById("tipoReceita").value);
+      const nome = document.getElementById("nomeInput").value;
+      const data = document.getElementById("dataInput").value;
+      const valor = parseFloat(document.getElementById("valorInput").value);
+
+      if (!nome || !data || isNaN(valor)) {
+        alert("Preencha todos os campos corretamente.");
+        return;
+      }
+
+      let gastos = JSON.parse(localStorage.getItem("gastos")) || [];
+      gastos.push({ nome, data, valor });
+      localStorage.setItem("gastos", JSON.stringify(gastos));
+
+      const totalPrevisto = gastos.reduce((t, g) => t + parseFloat(g.valor), 0);
+      document.getElementById("previsto").value = "R$ " + totalPrevisto.toFixed(2);
+
+      mostraConta();
+
+      document.getElementById("nomeInput").value = "";
+      document.getElementById("dataInput").value = "";
+      document.getElementById("valorInput").value = "";
+    }
+
+    function excluir() {
+      localStorage.removeItem("gastos");
+
+      document.getElementById("tipoReceita").value = "";
+      document.getElementById("nomeInput").value = "";
+      document.getElementById("dataInput").value = "";
+      document.getElementById("valorInput").value = "";
+      document.getElementById("previsto").value = "";
+      document.getElementById("efetivado").value = "";
+      document.getElementById("saldo").value = "";
+
+      mostraConta();
+    }
+
+    function mostraConta() {
+      const mostra = document.getElementById("visual");
+      mostra.innerHTML = "";
+
+      let gastos = JSON.parse(localStorage.getItem("gastos")) || [];
+
+      gastos.forEach((gasto, i) => {
+        const li = document.createElement("li");
+        li.textContent = `Nome: ${gasto.nome}, Data: ${gasto.data}, Valor: R$ ${parseFloat(gasto.valor).toFixed(2)}`;
+
+        const btn = document.createElement("button");
+        btn.textContent = "Pagou";
+        btn.style.marginLeft = "10px";
+
+        btn.onclick = () => {
+          const removido = gastos.splice(i, 1)[0];
+          localStorage.setItem("gastos", JSON.stringify(gastos));
+          mostraConta();
+
+          const Receita = parseFloat(document.getElementById("tipoReceita").value) || 0;
+          const valorRemovido = parseFloat(removido.valor) || 0;
+
+          document.getElementById("efetivado").value = "R$ " + valorRemovido.toFixed(2);
+          document.getElementById("saldo").value = "R$ " + (Receita - valorRemovido).toFixed(2);
+
+          const totalPrevisto = gastos.reduce((t, g) => t + parseFloat(g.valor), 0);
+          document.getElementById("previsto").value = "R$ " + totalPrevisto.toFixed(2);
+        };
+
+        li.appendChild(btn);
+        mostra.appendChild(li);
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      mostraConta();
+      const gastos = JSON.parse(localStorage.getItem("gastos")) || [];
+      const totalPrevisto = gastos.reduce((t, g) => t + parseFloat(g.valor), 0);
+      document.getElementById("previsto").value = "R$ " + totalPrevisto.toFixed(2);
+    });
+  </script>
+</body>
+</html>
+
